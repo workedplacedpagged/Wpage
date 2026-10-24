@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wpage - Panel Interactivo y Personal</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(156, 163, 175, 0.3); border-radius: 9999px; }
+        canvas { touch-action: none; }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans transition-colors duration-200">
+
+    <!-- HEADER / NAVEGACIÓN -->
+    <header class="bg-slate-800/90 backdrop-blur border-b border-slate-700/80 sticky top-0 z-30 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                
+                <!-- LOGO Wpage -->
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white font-black text-2xl shadow-lg shadow-sky-500/20">
+                        W
+                    </div>
+                    <div>
+                        <span class="text-2xl font-black tracking-tight text-white">W<span class="text-sky-400">page</span></span>
+                        <span id="roleBadge" class="ml-2 text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-full bg-slate-700 text-slate-300">Modo Visitante</span>
+                    </div>
+                </div>
+
+                <!-- PESTAÑAS (DESKTOP) -->
+                <nav class="hidden md:flex space-x-1 bg-slate-900/80 p-1 rounded-xl border border-slate-700/50">
+                    <button onclick="switchTab('relaciones')" id="tabBtn-relaciones" class="nav-tab px-4 py-2 text-xs font-bold rounded-lg transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-diagram-project"></i> Relaciones
+                    </button>
+                    <button onclick="switchTab('personas')" id="tabBtn-personas" class="nav-tab px-4 py-2 text-xs font-bold rounded-lg transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-users"></i> Personas
+                    </button>
+                    <button onclick="switchTab('mis-cosas')" id="tabBtn-mis-cosas" class="nav-tab px-4 py-2 text-xs font-bold rounded-lg transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-boxes-stacked"></i> Mis Cosas
+                    </button>
+                    <button onclick="switchTab('notas-anonimas')" id="tabBtn-notas-anonimas" class="nav-tab px-4 py-2 text-xs font-bold rounded-lg transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-envelope-open-text"></i> Notas Anónimas
+                    </button>
+                </nav>
+
+                <!-- CONTROLES & AUTH -->
+                <div class="flex items-center gap-2">
+                    <!-- Botón de Inicio/Cierre de Sesión Admin -->
+                    <div id="authContainer">
+                        <button id="loginBtn" onclick="openLoginModal()" class="px-3.5 py-1.5 text-xs font-bold rounded-xl border border-slate-700 bg-slate-800 text-slate-200 hover:text-white hover:bg-slate-700 transition flex items-center gap-2 shadow-sm">
+                            <i class="fa-solid fa-lock text-amber-400"></i>
+                            <span>Admin Login</span>
+                        </button>
+                        
+                        <div id="loggedInGroup" class="hidden flex items-center gap-2">
+                            <button onclick="openChangePassModal()" class="p-2 text-slate-400 hover:text-amber-400 bg-slate-800 border border-slate-700 rounded-xl transition" title="Cambiar Contraseña Admin">
+                                <i class="fa-solid fa-key text-xs"></i>
+                            </button>
+                            <button onclick="logoutAdmin()" class="px-3 py-1.5 text-xs font-bold rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 transition flex items-center gap-1.5">
+                                <i class="fa-solid fa-right-from-bracket"></i>
+                                <span class="hidden sm:inline">Cerrar Sesión</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Restablecer datos -->
+                    <button onclick="resetData()" class="p-2 text-slate-400 hover:text-red-400 rounded-xl hover:bg-slate-700/50 transition" title="Restablecer Datos Demo">
+                        <i class="fa-solid fa-rotate-right text-xs"></i>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- PESTAÑAS (MÓVIL) -->
+        <div class="md:hidden flex border-t border-slate-700/60 bg-slate-900 px-2 py-1.5 justify-around text-xs">
+            <button onclick="switchTab('relaciones')" id="mTabBtn-relaciones" class="m-nav-tab flex-1 py-1.5 font-bold rounded-lg text-center flex flex-col items-center gap-1 text-slate-400">
+                <i class="fa-solid fa-diagram-project"></i> Relaciones
+            </button>
+            <button onclick="switchTab('personas')" id="mTabBtn-personas" class="m-nav-tab flex-1 py-1.5 font-bold rounded-lg text-center flex flex-col items-center gap-1 text-slate-400">
+                <i class="fa-solid fa-users"></i> Personas
+            </button>
+            <button onclick="switchTab('mis-cosas')" id="mTabBtn-mis-cosas" class="m-nav-tab flex-1 py-1.5 font-bold rounded-lg text-center flex flex-col items-center gap-1 text-slate-400">
+                <i class="fa-solid fa-boxes-stacked"></i> Mis Cosas
+            </button>
+            <button onclick="switchTab('notas-anonimas')" id="mTabBtn-notas-anonimas" class="m-nav-tab flex-1 py-1.5 font-bold rounded-lg text-center flex flex-col items-center gap-1 text-slate-400">
+                <i class="fa-solid fa-envelope-open-text"></i> Anónimos
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full">
+
+        <!-- ======================================================== -->
+        <!-- SECCIÓN 1: DIAGRAMA DE RELACIONES / LÍNEAS -->
+        <!-- ======================================================== -->
+        <section id="sec-relaciones" class="tab-content space-y-6">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-800/80 p-5 rounded-2xl border border-slate-700/60 shadow-lg">
+                <div>
+                    <h1 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-diagram-project text-sky-400"></i> Diagrama de Relaciones
+                    </h1>
+                    <p class="text-xs sm:text-sm text-slate-400 mt-0.5">Mapa interactivo con conexiones dinámicas entre perfiles.</p>
+                </div>
+                <div class="admin-only hidden flex items-center gap-2 w-full sm:w-auto">
+                    <button onclick="openConnectModal()" class="bg-sky-500 hover:bg-sky-600 text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition flex items-center justify-center gap-2 shadow-lg shadow-sky-500/20">
+                        <i class="fa-solid fa-link"></i> Nueva Conexión
+                    </button>
+                </div>
+            </div>
+
+            <!-- CANVAS INTERACTIVO CON NODOS -->
+            <div class="bg-slate-800/50 rounded-2xl border border-slate-700/80 p-4 relative overflow-hidden min-h-[500px] flex flex-col justify-center items-center shadow-inner">
+                <canvas id="relationCanvas" class="w-full h-[520px] rounded-xl cursor-grab active:cursor-grabbing"></canvas>
+                <div class="absolute bottom-4 right-4 bg-slate-900/90 backdrop-blur px-3 py-1.5 rounded-xl border border-slate-700 text-[11px] text-slate-400 flex items-center gap-3">
+                    <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-sky-400 inline-block"></span> Persona</span>
+                    <span class="flex items-center gap-1.5"><span class="w-4 h-0.5 bg-sky-400 inline-block"></span> Línea de Relación</span>
+                </div>
+            </div>
+
+            <!-- LISTA DE CONEXIONES EXISTENTES -->
+            <div class="bg-slate-800/50 p-5 rounded-2xl border border-slate-700/60 space-y-3">
+                <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wider">Conexiones Registradas</h3>
+                <div id="connectionsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    <!-- Dinámico -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ======================================================== -->
+        <!-- SECCIÓN 2: PERSONAS (FICHAS SIMPLES) -->
+        <!-- ======================================================== -->
+        <section id="sec-personas" class="tab-content space-y-6 hidden">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-800/80 p-5 rounded-2xl border border-slate-700/60 shadow-lg">
+                <div>
+                    <h1 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-users text-emerald-400"></i> Fichas de Personas
+                    </h1>
+                    <p class="text-xs sm:text-sm text-slate-400 mt-0.5">Perfiles personales con foto, nombre y datos.</p>
+                </div>
+                <div class="admin-only hidden">
+                    <button onclick="openPersonModal()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20">
+                        <i class="fa-solid fa-user-plus"></i> Agregar Persona
+                    </button>
+                </div>
+            </div>
+
+            <!-- GRID DE PERSONAS -->
+            <div id="peopleGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                <!-- Dinámico -->
+            </div>
+        </section>
+
+        <!-- ======================================================== -->
+        <!-- SECCIÓN 3: MIS COSAS -->
+        <!-- ======================================================== -->
+        <section id="sec-mis-cosas" class="tab-content space-y-6 hidden">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-800/80 p-5 rounded-2xl border border-slate-700/60 shadow-lg">
+                <div>
+                    <h1 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-boxes-stacked text-indigo-400"></i> Mis Cosas
+                    </h1>
+                    <p class="text-xs sm:text-sm text-slate-400 mt-0.5">Muro personal para tarjetas, notas, recordatorios y enlaces.</p>
+                </div>
+                <div class="admin-only hidden">
+                    <button onclick="openStuffModal()" class="bg-indigo-500 hover:bg-indigo-600 text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20">
+                        <i class="fa-solid fa-plus"></i> Nuevo Bloque
+                    </button>
+                </div>
+            </div>
+
+            <!-- GRID MIS COSAS -->
+            <div id="stuffGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <!-- Dinámico -->
+            </div>
+        </section>
+
+        <!-- ======================================================== -->
+        <!-- SECCIÓN 4: BUZÓN DE NOTAS ANÓNIMAS -->
+        <!-- ======================================================== -->
+        <section id="sec-notas-anonimas" class="tab-content space-y-6 hidden">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-800/80 p-5 rounded-2xl border border-slate-700/60 shadow-lg">
+                <div>
+                    <h1 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-envelope-open-text text-amber-400"></i> Muro de Notas Anónimas
+                    </h1>
+                    <p class="text-xs sm:text-sm text-slate-400 mt-0.5">Cualquier visitante puede dejar un mensaje anónimo de libre expresión.</p>
+                </div>
+                <button onclick="openAnonModal()" class="bg-amber-500 hover:bg-amber-600 text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20">
+                    <i class="fa-solid fa-paper-plane"></i> Dejar Nota Anónima
+                </button>
+            </div>
+
+            <!-- MURO DE NOTAS -->
+            <div id="anonNotesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <!-- Dinámico -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ======================================================== -->
+    <!-- MODALES DE AUTENTICACIÓN Y EDICIÓN -->
+    <!-- ======================================================== -->
+
+    <!-- MODAL LOGIN ADMIN -->
+    <div id="loginModal" class="fixed inset-0 bg-slate-950/80 z-50 opacity-0 pointer-events-none transition-opacity duration-200 flex items-center justify-center p-4">
+        <div class="bg-slate-800 w-full max-w-sm rounded-2xl shadow-2xl border border-slate-700 overflow-hidden transform scale-95 transition-transform duration-200">
+            <div class="bg-slate-900 px-6 py-4 flex justify-between items-center border-b border-slate-700">
+                <h3 class="font-bold text-sm text-white flex items-center gap-2">
+                    <i class="fa-solid fa-shield-halved text-amber-400"></i> Autenticación de Admin
+                </h3>
+                <button onclick="closeModal('loginModal')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form onsubmit="handleLogin(event)" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-400 mb-1">Contraseña de Administrador</label>
+                    <input type="password" id="adminPasswordInput" required placeholder="Ingresa contraseña..." class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-amber-500">
+                    <p class="text-[11px] text-slate-500 mt-1">Clave por defecto: <code class="text-amber-400 font-mono">BotOstia</code></p>
+                </div>
+                <div class="pt-2 flex justify-end gap-2">
+                    <button type="button" onclick="closeModal('loginModal')" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-xl text-xs font-semibold">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-semibold shadow-md shadow-amber-500/20">Iniciar Sesión</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL CAMBIAR CONTRASEÑA -->
+    <div id="changePassModal" class="fixed inset-0 bg-slate-950/80 z-50 opacity-0 pointer-events-none transition-opacity duration-200 flex items-center justify-center p-4">
+        <div class="bg-slate-800 w-full max-w-sm rounded-2xl shadow-2xl border border-slate-700 overflow-hidden transform scale-95 transition-transform duration-200">
+            <div class="bg-slate-900 px-6 py-4 flex justify-between items-center border-b border-slate-700">
+                <h3 class="font-bold text-sm text-white flex items-center gap-2">
+                    <i class="fa-solid fa-key text-amber-400"></i> Cambiar Contraseña
+                </h3>
+                <button onclick="closeModal('changePassModal')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form onsubmit="handleChangePassword(event)" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-400 mb-1">Nueva Contraseña</label>
+                    <input type="password" id="newAdminPassword" required placeholder="Nueva clave..." class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-amber-500">
+                </div>
+                <div class="pt-2 flex justify-end gap-2">
+                    <button type="button" onclick="closeModal('changePassModal')" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-xl text-xs font-semibold">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-semibold">Actualizar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL PERSONA -->
+    <div id="personModal" class="fixed inset-0 bg-slate-950/80 z-50 opacity-0 pointer-events-none transition-opacity duration-200 flex items-center justify-center p-4">
+        <div class="bg-slate-800 w-full max-w-md rounded-2xl shadow-2xl border border-slate-700 overflow-hidden transform scale-95 transition-transform duration-200">
+            <div class="bg-slate-900 px-6 py-4 flex justify-between items-center border-b border-slate-700">
+                <h3 id="personModalTitle" class="font-bold text-sm text-white">Perfil de Persona</h3>
+                <button onclick="closeModal('personModal')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="personForm" onsubmit="savePerson(event)" class="p-6 space-y-4">
+                <input type="hidden" id="personId">
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-400 mb-1">Nombre Completo</label>
+                    <input type="text" id="personName" required placeholder="Ej. Alex Rivera" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-emerald-500">
+                </div>
+                
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-400 mb-1">Foto de Perfil</label>
+                    <div class="space-y-2">
+                        <input type="url" id="personAvatarUrl" placeholder="https://ejemplo.com/foto.jpg" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-emerald-500">
+                        <div class="text-center text-[10px] text-slate-500 uppercase font-bold">O subir archivo desde equipo</div>
+                        <input type="file" id="personAvatarFile" accept="image/*" onchange="handleImageUpload(event)" class="w-full text-xs text-slate-400 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-700 file:text-slate-200 hover:file:bg-slate-600">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-400 mb-1">Datos y Notas Personales</label>
+                    <textarea id="personDetails" rows="4" placeholder="Ingresa detalles personales..." class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-emerald-500 custom-scrollbar"></textarea>
+                </div>
+
+                <div class="pt-2 flex justify-end gap-2">
+                    <button type="button" onclick="closeModal('personModal')" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-xl text-xs font-semibold">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-xs font-semibold">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL CONEXIÓN DIAGRAMA -->
+    <div id="connectModal" class="fixed inset-0 bg-slate-950/80 z-50 opacity-0 pointer-events-none transition-opacity duration-200 flex items-center justify-center p-4">
+        <div class="bg-slate-800 w-full max-w-md rounded-2xl shadow-2xl border border-slate-700 overflow-hidden transform scale-95 transition-transform duration-200">
+            <div class="bg-slate-900 px-6 py-4 flex justify-between items-center border-b border-slate-700">
+                <h3 class="font-bold text-sm text-white">Nueva Conexión en Diagrama</h3>
+                <button onclick="closeModal('connectModal')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form onsubmit="saveConnection(event)" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-400 mb-1">Persona A</label>
+                    <select id="connPerson1" required class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-sky-500"></select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-400 mb-1">Persona B</label>
+                    <select id="connPerson2" required class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-sky-500"></select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-400 mb-1">Etiqueta de Relación (Opcional)</label>
+                    <input type="text" id="connLabel" placeholder="Ej. Amigos, Amistad, Vínculo..." class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-sky-500">
+                </div>
+                <div class="pt-2 flex justify-end gap-2">
+                    <button type="button" onclick="closeModal('connectModal')" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-xl text-xs font-semibold">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-semibold">Trazar Conexión</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL MIS COSAS -->
+    <div id="stuffModal" class="fixed inset-0 bg-slate-950/80 z-50 opacity-0 pointer-events-none transition-opacity duration-200 flex items-center justify-center p-4">
+        <div class="bg-slate-800 w-full max-w-md rounded-2xl shadow-2xl border border-slate-700 overflow-hidden transform scale-95 transition-transform duration-200">
+            <div class="bg-slate-900 px-6 py-4 flex justify-between items-center border-b border-slate-700">
+                <h3 id="stuffModalTitle" class="font-bold text-sm text-white">Bloque de Contenido</h3>
+                <button onclick="closeModal('stuffModal')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="stuffForm" onsubmit="saveStuff(event)" class="p-6 space-y-4">
+                <input type="hidden" id="stuffId">
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-400 mb-1">Título</label>
+                    <input type="text" id="stuffTitle" required placeholder="Ej. Proyectos Personales" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-400 mb-1">Contenido / Lista</label>
+                    <textarea id="stuffContent" rows="4" placeholder="Escribe notas, recordatorios o enlaces..." class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500 custom-scrollbar"></textarea>
+                </div>
+                <div class="pt-2 flex justify-end gap-2">
+                    <button type="button" onclick="closeModal('stuffModal')" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-xl text-xs font-semibold">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl text-xs font-semibold">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL NOTA ANÓNIMA -->
+    <div id="anonModal" class="fixed inset-0 bg-slate-950/80 z-50 opacity-0 pointer-events-none transition-opacity duration-200 flex items-center justify-center p-4">
+        <div class="bg-slate-800 w-full max-w-md rounded-2xl shadow-2xl border border-slate-700 overflow-hidden transform scale-95 transition-transform duration-200">
+            <div class="bg-slate-900 px-6 py-4 flex justify-between items-center border-b border-slate-700">
+                <h3 class="font-bold text-sm text-white flex items-center gap-2"><i class="fa-solid fa-user-secret text-amber-400"></i> Dejar Nota Anónima</h3>
+                <button onclick="closeModal('anonModal')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form onsubmit="saveAnonNote(event)" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-400 mb-1">Mensaje Anónimo</label>
+                    <textarea id="anonMessage" required rows="4" placeholder="Escribe tu mensaje aquí..." class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500 custom-scrollbar"></textarea>
+                </div>
+                <div class="pt-2 flex justify-end gap-2">
+                    <button type="button" onclick="closeModal('anonModal')" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-xl text-xs font-semibold">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-semibold">Publicar Nota</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-slate-800 text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3 transform translate-y-20 opacity-0 transition-all duration-300 z-50 border border-slate-700 text-xs font-semibold">
+        <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+        <span id="toastMsg">Notificación</span>
+    </div>
+
+    <!-- SCRIPT LOGIC -->
+    <script>
+        // DATOS DEMO INICIALES
+        const demoPeople = [
+            { id: 'p1', name: 'Persona A', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80', details: 'Detalles: Amiga cercana\nIntereses: Arte y Música', x: 200, y: 150 },
+            { id: 'p2', name: 'Persona B', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80', details: 'Detalles: Contacto directo\nIntereses: Tecnología', x: 500, y: 150 },
+            { id: 'p3', name: 'Persona C', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80', details: 'Detalles: Conocida\nIntereses: Fotografía', x: 350, y: 380 }
+        ];
+
+        const demoConnections = [
+            { id: 'c1', from: 'p1', to: 'p2', label: 'Amistad Directa' },
+            { id: 'c2', from: 'p1', to: 'p3', label: 'Vínculo' }
+        ];
+
+        const demoStuff = [
+            { id: 's1', title: 'Notas Personales', content: '- Revisar mapa de proyectos\n- Organizar eventos del mes' },
+            { id: 's2', title: 'Recursos', content: 'https://unsplash.com\nhttps://fontawesome.com' }
+        ];
+
+        const demoAnonNotes = [
+            { id: 'an1', date: '2026-10-23 18:30', text: '¡Me encanta la interfaz interactiva de Wpage!' }
+        ];
+
+        // ESTADO GLOBAL
+        let people = [];
+        let connections = [];
+        let stuff = [];
+        let anonNotes = [];
+        let adminPassword = 'BotOstia';
+        let isAdminLoggedIn = false;
+        let activeTab = 'relaciones';
+        let tempAvatarBase64 = '';
+
+        // INICIALIZACIÓN
+        window.onload = function() {
+            loadData();
+            switchTab('relaciones');
+            updateAdminUI();
+            initCanvas();
+        };
+
+        function loadData() {
+            people = JSON.parse(localStorage.getItem('wp_people')) || [...demoPeople];
+            connections = JSON.parse(localStorage.getItem('wp_connections')) || [...demoConnections];
+            stuff = JSON.parse(localStorage.getItem('wp_stuff')) || [...demoStuff];
+            anonNotes = JSON.parse(localStorage.getItem('wp_anon')) || [...demoAnonNotes];
+            adminPassword = localStorage.getItem('wp_admin_pass') || 'BotOstia';
+            
+            // Comprobar sesión de admin guardada
+            isAdminLoggedIn = localStorage.getItem('wp_admin_logged') === 'true';
+        }
+
+        function saveData() {
+            localStorage.setItem('wp_people', JSON.stringify(people));
+            localStorage.setItem('wp_connections', JSON.stringify(connections));
+            localStorage.setItem('wp_stuff', JSON.stringify(stuff));
+            localStorage.setItem('wp_anon', JSON.stringify(anonNotes));
+            localStorage.setItem('wp_admin_pass', adminPassword);
+            localStorage.setItem('wp_admin_logged', isAdminLoggedIn ? 'true' : 'false');
+        }
+
+        // ==========================================
+        // CONTROL AUTENTICACIÓN ADMIN
+        // ==========================================
+        function openLoginModal() {
+            document.getElementById('adminPasswordInput').value = '';
+            showModal('loginModal');
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const inputPass = document.getElementById('adminPasswordInput').value;
+            if (inputPass === adminPassword) {
+                isAdminLoggedIn = true;
+                saveData();
+                updateAdminUI();
+                closeModal('loginModal');
+                showToast('Sesión iniciada como Administrador', 'check');
+            } else {
+                showToast('Contraseña incorrecta', 'error');
+            }
+        }
+
+        function logoutAdmin() {
+            isAdminLoggedIn = false;
+            saveData();
+            updateAdminUI();
+            showToast('Sesión de Admin cerrada');
+        }
+
+        function openChangePassModal() {
+            document.getElementById('newAdminPassword').value = '';
+            showModal('changePassModal');
+        }
+
+        function handleChangePassword(e) {
+            e.preventDefault();
+            const newPass = document.getElementById('newAdminPassword').value.trim();
+            if (newPass.length < 3) {
+                showToast('La contraseña debe tener al menos 3 caracteres');
+                return;
+            }
+            adminPassword = newPass;
+            saveData();
+            closeModal('changePassModal');
+            showToast('Contraseña de Admin actualizada');
+        }
+
+        function updateAdminUI() {
+            const badge = document.getElementById('roleBadge');
+            const loginBtn = document.getElementById('loginBtn');
+            const loggedInGroup = document.getElementById('loggedInGroup');
+
+            if (isAdminLoggedIn) {
+                badge.innerText = "Administrador Activo";
+                badge.className = "ml-2 text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40";
+                
+                loginBtn.classList.add('hidden');
+                loggedInGroup.classList.remove('hidden');
+
+                document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
+            } else {
+                badge.innerText = "Modo Visitante";
+                badge.className = "ml-2 text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-full bg-slate-700 text-slate-300";
+                
+                loginBtn.classList.remove('hidden');
+                loggedInGroup.classList.add('hidden');
+
+                document.querySelectorAll('.admin-only').forEach(el => el.classList.add('hidden'));
+            }
+
+            renderPeople();
+            renderStuff();
+            renderAnonNotes();
+            renderConnectionsList();
+            drawDiagram();
+        }
+
+        // PESTAÑAS
+        function switchTab(tabId) {
+            activeTab = tabId;
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`sec-${tabId}`).classList.remove('hidden');
+
+            // Tab styles desktop
+            document.querySelectorAll('.nav-tab').forEach(b => b.className = "nav-tab px-4 py-2 text-xs font-bold rounded-lg transition-all flex items-center gap-2 text-slate-400 hover:text-white");
+            const activeNav = document.getElementById(`tabBtn-${tabId}`);
+            if (activeNav) activeNav.className = "nav-tab px-4 py-2 text-xs font-bold rounded-lg transition-all flex items-center gap-2 bg-sky-500 text-white shadow-md shadow-sky-500/20";
+
+            // Tab styles mobile
+            document.querySelectorAll('.m-nav-tab').forEach(b => b.className = "m-nav-tab flex-1 py-1.5 font-bold rounded-lg text-center flex flex-col items-center gap-1 text-slate-400");
+            const activeMNav = document.getElementById(`mTabBtn-${tabId}`);
+            if (activeMNav) activeMNav.className = "m-nav-tab flex-1 py-1.5 font-bold rounded-lg text-center flex flex-col items-center gap-1 bg-slate-800 text-sky-400";
+
+            if (tabId === 'relaciones') drawDiagram();
+            if (tabId === 'personas') renderPeople();
+            if (tabId === 'mis-cosas') renderStuff();
+            if (tabId === 'notas-anonimas') renderAnonNotes();
+        }
+
+        // ==========================================
+        // DIAGRAMA INTERACTIVO DE CANVAS
+        // ==========================================
+        let canvas, ctx;
+        let draggedNode = null;
+
+        function initCanvas() {
+            canvas = document.getElementById('relationCanvas');
+            ctx = canvas.getContext('2d');
+            resizeCanvas();
+
+            window.addEventListener('resize', () => {
+                resizeCanvas();
+                drawDiagram();
+            });
+
+            // Drag and drop para mover personas en el canvas
+            canvas.addEventListener('pointerdown', (e) => {
+                if (!isAdminLoggedIn) return;
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                draggedNode = people.find(p => {
+                    const dx = p.x - x;
+                    const dy = p.y - y;
+                    return Math.sqrt(dx * dx + dy * dy) < 25;
+                });
+            });
+
+            canvas.addEventListener('pointermove', (e) => {
+                if (draggedNode && isAdminLoggedIn) {
+                    const rect = canvas.getBoundingClientRect();
+                    draggedNode.x = e.clientX - rect.left;
+                    draggedNode.y = e.clientY - rect.top;
+                    drawDiagram();
+                }
+            });
+
+            canvas.addEventListener('pointerup', () => {
+                if (draggedNode) {
+                    draggedNode = null;
+                    saveData();
+                }
+            });
+        }
+
+        function resizeCanvas() {
+            if (!canvas) return;
+            canvas.width = canvas.parentElement.clientWidth - 32;
+            canvas.height = 500;
+        }
+
+        function drawDiagram() {
+            if (!ctx) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Dibujar líneas de conexión
+            connections.forEach(conn => {
+                const p1 = people.find(p => p.id === conn.from);
+                const p2 = people.find(p => p.id === conn.to);
+                if (p1 && p2) {
+                    ctx.beginPath();
+                    ctx.moveTo(p1.x, p1.y);
+                    ctx.lineTo(p2.x, p2.y);
+                    ctx.strokeStyle = '#38bdf8';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+
+                    // Etiqueta
+                    if (conn.label) {
+                        const midX = (p1.x + p2.x) / 2;
+                        const midY = (p1.y + p2.y) / 2;
+                        ctx.fillStyle = '#1e293b';
+                        ctx.fillRect(midX - 35, midY - 10, 70, 20);
+                        ctx.fillStyle = '#94a3b8';
+                        ctx.font = '10px sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(conn.label, midX, midY + 3);
+                    }
+                }
+            });
+
+            // Dibujar Nodos (Personas)
+            people.forEach(p => {
+                if (!p.x) p.x = Math.random() * (canvas.width - 100) + 50;
+                if (!p.y) p.y = Math.random() * (canvas.height - 100) + 50;
+
+                // Círculo exterior
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 22, 0, Math.PI * 2);
+                ctx.fillStyle = '#0f172a';
+                ctx.fill();
+                ctx.strokeStyle = '#38bdf8';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+
+                // Nombre bajo el nodo
+                ctx.fillStyle = '#f8fafc';
+                ctx.font = 'bold 12px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(p.name, p.x, p.y + 36);
+            });
+        }
+
+        function openConnectModal() {
+            const p1 = document.getElementById('connPerson1');
+            const p2 = document.getElementById('connPerson2');
+            p1.innerHTML = '';
+            p2.innerHTML = '';
+
+            people.forEach(p => {
+                p1.innerHTML += `<option value="${p.id}">${p.name}</option>`;
+                p2.innerHTML += `<option value="${p.id}">${p.name}</option>`;
+            });
+
+            showModal('connectModal');
+        }
+
+        function saveConnection(e) {
+            e.preventDefault();
+            const from = document.getElementById('connPerson1').value;
+            const to = document.getElementById('connPerson2').value;
+            const label = document.getElementById('connLabel').value;
+
+            if (from === to) {
+                showToast('No puedes conectar a la misma persona', 'error');
+                return;
+            }
+
+            connections.push({ id: 'c-' + Date.now(), from, to, label });
+            saveData();
+            drawDiagram();
+            renderConnectionsList();
+            closeModal('connectModal');
+            showToast('Conexión trazada');
+        }
+
+        function deleteConnection(id) {
+            connections = connections.filter(c => c.id !== id);
+            saveData();
+            drawDiagram();
+            renderConnectionsList();
+            showToast('Conexión eliminada');
+        }
+
+        function renderConnectionsList() {
+            const list = document.getElementById('connectionsList');
+            list.innerHTML = '';
+
+            if (connections.length === 0) {
+                list.innerHTML = `<p class="text-xs text-slate-500 col-span-full">No hay conexiones trazadas.</p>`;
+                return;
+            }
+
+            connections.forEach(c => {
+                const p1 = people.find(p => p.id === c.from);
+                const p2 = people.find(p => p.id === c.to);
+                if (!p1 || !p2) return;
+
+                const item = document.createElement('div');
+                item.className = "bg-slate-900/60 p-3 rounded-xl border border-slate-700/50 text-xs flex justify-between items-center";
+                item.innerHTML = `
+                    <div class="flex items-center gap-2 text-slate-300">
+                        <span class="font-bold text-white">${p1.name}</span>
+                        <i class="fa-solid fa-arrow-right-long text-sky-400"></i>
+                        <span class="font-bold text-white">${p2.name}</span>
+                        ${c.label ? `<span class="bg-slate-800 text-slate-400 text-[10px] px-2 py-0.5 rounded-full ml-1">${c.label}</span>` : ''}
+                    </div>
+                    ${isAdminLoggedIn ? `<button onclick="deleteConnection('${c.id}')" class="text-slate-500 hover:text-red-400"><i class="fa-solid fa-trash text-xs"></i></button>` : ''}
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        // ==========================================
+        // RENDERIZADO PERSONAS
+        // ==========================================
+        function renderPeople() {
+            const grid = document.getElementById('peopleGrid');
+            grid.innerHTML = '';
+
+            people.forEach(p => {
+                const card = document.createElement('div');
+                card.className = "bg-slate-800/80 rounded-2xl p-5 border border-slate-700/60 shadow-lg flex flex-col justify-between space-y-4 relative group";
+
+                card.innerHTML = `
+                    <div class="space-y-3">
+                        <div class="flex items-center gap-3">
+                            <img src="${p.avatar || 'https://placehold.co/100x100?text=Foto'}" class="w-14 h-14 rounded-2xl object-cover border-2 border-sky-500/50" onerror="this.src='https://placehold.co/100x100?text=Foto'">
+                            <div>
+                                <h3 class="font-bold text-white text-base">${p.name}</h3>
+                                <span class="text-[10px] text-slate-400">ID: ${p.id}</span>
+                            </div>
+                        </div>
+
+                        ${p.details ? `
+                            <p class="text-xs text-slate-300 whitespace-pre-line bg-slate-900/60 p-3 rounded-xl border border-slate-700/50 leading-relaxed">${p.details}</p>
+                        ` : ''}
+                    </div>
+
+                    ${isAdminLoggedIn ? `
+                        <div class="flex justify-end gap-2 pt-2 border-t border-slate-700/50">
+                            <button onclick="editPerson('${p.id}')" class="p-1.5 text-slate-400 hover:text-amber-400"><i class="fa-solid fa-pen text-xs"></i></button>
+                            <button onclick="deletePerson('${p.id}')" class="p-1.5 text-slate-400 hover:text-red-400"><i class="fa-solid fa-trash text-xs"></i></button>
+                        </div>
+                    ` : ''}
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function handleImageUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                tempAvatarBase64 = evt.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function openPersonModal() {
+            document.getElementById('personModalTitle').innerText = "Agregar Persona";
+            document.getElementById('personForm').reset();
+            document.getElementById('personId').value = '';
+            tempAvatarBase64 = '';
+            showModal('personModal');
+        }
+
+        function editPerson(id) {
+            const p = people.find(item => item.id === id);
+            if (!p) return;
+
+            document.getElementById('personModalTitle').innerText = "Editar Persona";
+            document.getElementById('personId').value = p.id;
+            document.getElementById('personName').value = p.name;
+            document.getElementById('personAvatarUrl').value = p.avatar || '';
+            document.getElementById('personDetails').value = p.details || '';
+            tempAvatarBase64 = p.avatar && p.avatar.startsWith('data:') ? p.avatar : '';
+
+            showModal('personModal');
+        }
+
+        function savePerson(e) {
+            e.preventDefault();
+            const id = document.getElementById('personId').value;
+            const name = document.getElementById('personName').value;
+            const urlAvatar = document.getElementById('personAvatarUrl').value;
+            const details = document.getElementById('personDetails').value;
+
+            const finalAvatar = tempAvatarBase64 || urlAvatar || 'https://placehold.co/100x100?text=Foto';
+
+            if (id) {
+                const idx = people.findIndex(p => p.id === id);
+                if (idx !== -1) {
+                    people[idx] = { ...people[idx], name, avatar: finalAvatar, details };
+                }
+            } else {
+                people.push({
+                    id: 'p-' + Date.now(),
+                    name,
+                    avatar: finalAvatar,
+                    details,
+                    x: Math.random() * 400 + 50,
+                    y: Math.random() * 300 + 50
+                });
+            }
+
+            saveData();
+            renderPeople();
+            drawDiagram();
+            closeModal('personModal');
+            showToast('Persona guardada');
+        }
+
+        function deletePerson(id) {
+            people = people.filter(p => p.id !== id);
+            connections = connections.filter(c => c.from !== id && c.to !== id);
+            saveData();
+            renderPeople();
+            drawDiagram();
+            renderConnectionsList();
+            showToast('Persona eliminada');
+        }
+
+        // ==========================================
+        // RENDERIZADO MIS COSAS
+        // ==========================================
+        function renderStuff() {
+            const grid = document.getElementById('stuffGrid');
+            grid.innerHTML = '';
+
+            stuff.forEach(s => {
+                const card = document.createElement('div');
+                card.className = "bg-slate-800/80 rounded-2xl p-5 border border-slate-700/60 shadow-lg flex flex-col justify-between space-y-3";
+                
+                card.innerHTML = `
+                    <div>
+                        <h3 class="font-bold text-white text-base mb-2">${s.title}</h3>
+                        <p class="text-xs text-slate-300 whitespace-pre-line leading-relaxed">${s.content}</p>
+                    </div>
+                    ${isAdminLoggedIn ? `
+                        <div class="flex justify-end gap-2 pt-2 border-t border-slate-700/50">
+                            <button onclick="editStuff('${s.id}')" class="p-1 text-slate-400 hover:text-amber-400"><i class="fa-solid fa-pen text-xs"></i></button>
+                            <button onclick="deleteStuff('${s.id}')" class="p-1 text-slate-400 hover:text-red-400"><i class="fa-solid fa-trash text-xs"></i></button>
+                        </div>
+                    ` : ''}
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function openStuffModal() {
+            document.getElementById('stuffModalTitle').innerText = "Nuevo Bloque";
+            document.getElementById('stuffForm').reset();
+            document.getElementById('stuffId').value = '';
+            showModal('stuffModal');
+        }
+
+        function editStuff(id) {
+            const item = stuff.find(s => s.id === id);
+            if (!item) return;
+
+            document.getElementById('stuffModalTitle').innerText = "Editar Bloque";
+            document.getElementById('stuffId').value = item.id;
+            document.getElementById('stuffTitle').value = item.title;
+            document.getElementById('stuffContent').value = item.content;
+
+            showModal('stuffModal');
+        }
+
+        function saveStuff(e) {
+            e.preventDefault();
+            const id = document.getElementById('stuffId').value;
+            const title = document.getElementById('stuffTitle').value;
+            const content = document.getElementById('stuffContent').value;
+
+            if (id) {
+                const idx = stuff.findIndex(s => s.id === id);
+                if (idx !== -1) stuff[idx] = { id, title, content };
+            } else {
+                stuff.push({ id: 's-' + Date.now(), title, content });
+            }
+
+            saveData();
+            renderStuff();
+            closeModal('stuffModal');
+            showToast('Bloque guardado');
+        }
+
+        function deleteStuff(id) {
+            stuff = stuff.filter(s => s.id !== id);
+            saveData();
+            renderStuff();
+            showToast('Bloque eliminado');
+        }
+
+        // ==========================================
+        // RENDERIZADO NOTAS ANÓNIMAS
+        // ==========================================
+        function renderAnonNotes() {
+            const grid = document.getElementById('anonNotesGrid');
+            grid.innerHTML = '';
+
+            if (anonNotes.length === 0) {
+                grid.innerHTML = `<p class="text-xs text-slate-500 col-span-full py-8 text-center">No hay notas anónimas aún.</p>`;
+                return;
+            }
+
+            anonNotes.forEach(n => {
+                const card = document.createElement('div');
+                card.className = "bg-amber-500/10 border border-amber-500/30 rounded-2xl p-5 shadow-lg flex flex-col justify-between space-y-3 relative";
+
+                card.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-[10px] font-bold uppercase text-amber-400 flex items-center gap-1">
+                                <i class="fa-solid fa-user-secret"></i> Anónimo
+                            </span>
+                            <span class="text-[10px] text-slate-500">${n.date}</span>
+                        </div>
+                        <p class="text-xs text-slate-200 leading-relaxed">${n.text}</p>
+                    </div>
+                    ${isAdminLoggedIn ? `
+                        <div class="flex justify-end pt-2 border-t border-amber-500/20">
+                            <button onclick="deleteAnonNote('${n.id}')" class="text-xs text-red-400 hover:text-red-300 font-semibold flex items-center gap-1">
+                                <i class="fa-solid fa-trash"></i> Eliminar
+                            </button>
+                        </div>
+                    ` : ''}
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function openAnonModal() {
+            showModal('anonModal');
+        }
+
+        function saveAnonNote(e) {
+            e.preventDefault();
+            const text = document.getElementById('anonMessage').value;
+            const date = new Date().toISOString().replace('T', ' ').slice(0, 16);
+
+            anonNotes.unshift({ id: 'an-' + Date.now(), date, text });
+            saveData();
+            renderAnonNotes();
+            closeModal('anonModal');
+            showToast('Nota anónima enviada');
+        }
+
+        function deleteAnonNote(id) {
+            anonNotes = anonNotes.filter(n => n.id !== id);
+            saveData();
+            renderAnonNotes();
+            showToast('Nota anónima eliminada');
+        }
+
+        // UTILS
+        function showModal(id) {
+            const m = document.getElementById(id);
+            m.classList.remove('opacity-0', 'pointer-events-none');
+            m.querySelector('div').classList.remove('scale-95');
+        }
+
+        function closeModal(id) {
+            const m = document.getElementById(id);
+            m.classList.add('opacity-0', 'pointer-events-none');
+            m.querySelector('div').classList.add('scale-95');
+        }
+
+        function showToast(msg, type = 'check') {
+            const t = document.getElementById('toast');
+            const icon = document.getElementById('toastIcon');
+            
+            if (type === 'error') {
+                icon.className = "fa-solid fa-circle-exclamation text-red-400 text-base";
+            } else {
+                icon.className = "fa-solid fa-circle-check text-emerald-400 text-base";
+            }
+
+            document.getElementById('toastMsg').innerText = msg;
+            t.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => t.classList.add('translate-y-20', 'opacity-0'), 3000);
+        }
+
+        function resetData() {
+            if (confirm('¿Restablecer datos a la versión muestra?')) {
+                localStorage.clear();
+                loadData();
+                updateAdminUI();
+                showToast('Datos restablecidos');
+            }
+        }
+    </script>
+</body>
+</html>
