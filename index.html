@@ -567,11 +567,14 @@
             canvas.width = canvas.parentElement.clientWidth - 32;
             canvas.height = 500;
         }
-
+        const imageCache = {};
         function drawDiagram() {
+          // Caché para almacenar las fotos cargadas en el Canvas
+
             if (!ctx) return;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+            // 1. Dibujar Líneas de Conexión
             connections.forEach(conn => {
                 const p1 = people.find(p => p.id === conn.from);
                 const p2 = people.find(p => p.id === conn.to);
@@ -596,23 +599,75 @@
                 }
             });
 
+            // 2. Dibujar Nodos (Foto de perfil o Inicial)
             people.forEach(p => {
                 if (!p.x) p.x = Math.random() * (canvas.width - 100) + 50;
                 if (!p.y) p.y = Math.random() * (canvas.height - 100) + 50;
 
+                const radius = 22;
+                const hasValidAvatar = p.avatar && 
+                                       !p.avatar.includes('placehold.co') && 
+                                       !p.avatar.includes('placeholder');
+
+                if (hasValidAvatar) {
+                    if (!imageCache[p.avatar]) {
+                        const img = new Image();
+                        img.src = p.avatar;
+                        img.onload = () => {
+                            imageCache[p.avatar] = img;
+                            drawDiagram();
+                        };
+                        img.onerror = () => {
+                            imageCache[p.avatar] = 'error';
+                            drawDiagram();
+                        };
+                    }
+
+                    if (imageCache[p.avatar] && imageCache[p.avatar] !== 'error') {
+                        ctx.save();
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
+                        ctx.closePath();
+                        ctx.clip();
+                        ctx.drawImage(imageCache[p.avatar], p.x - radius, p.y - radius, radius * 2, radius * 2);
+                        ctx.restore();
+                    } else {
+                        drawInitialNode(p, radius);
+                    }
+                } else {
+                    drawInitialNode(p, radius);
+                }
+
+                // Borde circular del nodo
                 ctx.beginPath();
-                ctx.arc(p.x, p.y, 22, 0, Math.PI * 2);
-                ctx.fillStyle = '#0f172a';
-                ctx.fill();
+                ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
                 ctx.strokeStyle = '#38bdf8';
                 ctx.lineWidth = 3;
                 ctx.stroke();
 
+                // Nombre debajo del nodo
                 ctx.fillStyle = '#f8fafc';
                 ctx.font = 'bold 12px sans-serif';
                 ctx.textAlign = 'center';
                 ctx.fillText(p.name, p.x, p.y + 36);
             });
+        }
+
+        // Función auxiliar para dibujar la inicial si no hay foto
+        function drawInitialNode(p, radius) {
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
+            ctx.fillStyle = '#0f172a';
+            ctx.fill();
+
+            const initial = (p.name || '?').charAt(0).toUpperCase();
+
+            ctx.fillStyle = '#38bdf8';
+            ctx.font = 'bold 16px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(initial, p.x, p.y + 1);
+            ctx.textBaseline = 'alphabetic';
         }
 
         function openConnectModal() {
